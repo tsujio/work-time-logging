@@ -2,14 +2,14 @@ package worktime
 
 import (
 	"fmt"
-	"time"
+	"log"
 	"strconv"
 	"strings"
-	"log"
+	"time"
 )
 
 type WorkTimeRecord struct {
-	Date Date
+	Date    Date
 	Periods []Period
 }
 
@@ -24,7 +24,7 @@ func (this *Date) IsLastDayOfMonth() bool {
 
 type Period struct {
 	Start time.Time
-	End time.Time
+	End   time.Time
 }
 
 func (this *Period) IsEmpty() bool {
@@ -127,7 +127,7 @@ func ParseWorkTimeRecords(year, month int, rows [][]interface{}) ([]WorkTimeReco
 
 		var periods []Period
 		for _, i := range []int{2, 4, 6} {
-			p, err := parsePeriod(date, string(record[i]), string(record[i + 1]))
+			p, err := parsePeriod(date, string(record[i]), string(record[i+1]))
 			if err != nil {
 				return nil, err
 			}

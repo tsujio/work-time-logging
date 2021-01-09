@@ -9,7 +9,7 @@ import (
 
 type ConfigFile struct {
 	Spreadsheets []*struct {
-		Id string
+		Id   string
 		Name string
 	}
 }
@@ -17,7 +17,7 @@ type ConfigFile struct {
 type Config struct {
 	ConfigFile
 	Path string
-	Dir string
+	Dir  string
 }
 
 func Load(settingsDir string) *Config {

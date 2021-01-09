@@ -1,8 +1,8 @@
 package spreadsheet
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"net/http"
 
 	"google.golang.org/api/sheets/v4"
@@ -11,7 +11,7 @@ import (
 )
 
 type Spreadsheet struct {
-	api *http.Client
+	api    *http.Client
 	config *configuration.Config
 }
 

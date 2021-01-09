@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
-	"fmt"
 
+	"work-time-logging/configuration"
 	"work-time-logging/spreadsheet"
 	"work-time-logging/worktime"
-	"work-time-logging/configuration"
 )
 
 type ShowCmdArgs struct {
