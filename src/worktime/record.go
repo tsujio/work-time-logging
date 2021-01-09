@@ -5,6 +5,7 @@ import (
 	"time"
 	"strconv"
 	"strings"
+	"log"
 )
 
 type WorkTimeRecord struct {
@@ -27,7 +28,11 @@ type Period struct {
 }
 
 func (this *Period) IsEmpty() bool {
-	return this.Start.Equal(time.Time{}) && this.End.Equal(time.Time{})
+	return this.Start.Equal(time.Time{}) && this.IsEndEmpty()
+}
+
+func (this *Period) IsEndEmpty() bool {
+	return this.End.Equal(time.Time{})
 }
 
 func parseDate(year, month int, value string) (*Date, error) {
@@ -89,6 +94,9 @@ func parsePeriod(date *Date, start, end string) (*Period, error) {
 
 			if s.Equal(e) || s.After(e) {
 				e = e.AddDate(0, 0, 1)
+			}
+			if s.After(e) {
+				log.Fatalf("Invalid period: %v - %v", s, e)
 			}
 
 			return &Period{Start: s, End: e}, nil

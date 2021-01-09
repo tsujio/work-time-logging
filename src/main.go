@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"fmt"
 
 	"work-time-logging/spreadsheet"
 	"work-time-logging/worktime"
@@ -17,7 +18,35 @@ type ShowCmdArgs struct {
 func doShow(args *ShowCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
-	w.Get(args.SheetName, 2021, 1)
+	records, err := w.Get(args.SheetName, 2021, 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, record := range records {
+		formatPeriod := func(p worktime.Period) string {
+			if p.IsEmpty() {
+				return ""
+			}
+			startStr := fmt.Sprintf("%2d:%02d", p.Start.Hour(), p.Start.Minute())
+			if p.IsEndEmpty() {
+				return startStr + "-"
+			}
+			endHour := p.End.Hour()
+			if p.Start.Day() != p.End.Day() {
+				endHour += 24
+			}
+			endStr := fmt.Sprintf("%2d:%02d", endHour, p.End.Minute())
+			return startStr + "-" + endStr
+		}
+
+		fmt.Printf("%2d/%2d  %11s  %11s  %11s\n",
+			record.Date.Month,
+			record.Date.Day,
+			formatPeriod(record.Periods[0]),
+			formatPeriod(record.Periods[1]),
+			formatPeriod(record.Periods[2]))
+	}
 }
 
 func main() {
