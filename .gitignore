@@ -1,0 +1,3 @@
+*.json
+go.sum
+src/work-time-logging
