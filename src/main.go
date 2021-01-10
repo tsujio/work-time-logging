@@ -19,6 +19,10 @@ type startCmdArgs struct {
 	projectName string
 }
 
+type endCmdArgs struct {
+	projectName string
+}
+
 func doShow(args *showCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
@@ -64,11 +68,23 @@ func doStart(args *startCmdArgs, config *configuration.Config) {
 	}
 }
 
+func doEnd(args *endCmdArgs, config *configuration.Config) {
+	s := spreadsheet.New(config)
+	w := worktime.New(s)
+	err := w.SetEnd(args.projectName,
+		&worktime.Date{2021, 1, 20},
+		&worktime.Time{20, 30})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	config := configuration.Load(".")
 
 	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
+	endCmd := flag.NewFlagSet("end", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: %s COMMAND [ARGS]", os.Args[0])
@@ -87,6 +103,12 @@ func main() {
 			projectName: startCmd.Arg(0),
 		}
 		doStart(&args, config)
+	case "end":
+		endCmd.Parse(os.Args[2:])
+		args := endCmdArgs{
+			projectName: endCmd.Arg(0),
+		}
+		doEnd(&args, config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])
 	}
