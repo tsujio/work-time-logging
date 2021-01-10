@@ -23,3 +23,7 @@ func (this *WorkTime) Get(target string, year, month int) ([]WorkTimeRecord, err
 	}
 	return records, nil
 }
+
+func (this *WorkTime) SetStart() {
+	this.sheet.Update()
+}

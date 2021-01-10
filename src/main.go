@@ -49,6 +49,12 @@ func doShow(args *ShowCmdArgs, config *configuration.Config) {
 	}
 }
 
+func doStart(config *configuration.Config) {
+	s := spreadsheet.New(config)
+	w := worktime.New(s)
+	w.SetStart()
+}
+
 func main() {
 	config := configuration.Load(".")
 
@@ -64,6 +70,8 @@ func main() {
 		showCmd.Parse(os.Args[2:])
 		args.SheetName = showCmd.Arg(0)
 		doShow(&args, config)
+	case "start":
+		doStart(config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])
 	}

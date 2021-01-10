@@ -67,7 +67,10 @@ func parseTime(date *Date, value string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, fmt.Errorf("Invalid minute: %s", slice[1])
 	}
-	jst, _ := time.LoadLocation("Asia/Tokyo")
+	jst, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		return time.Time{}, err
+	}
 	return time.Date(date.Year, time.Month(date.Month), date.Day, h, m, 0, 0, jst), nil
 }
 
