@@ -8,18 +8,14 @@ import (
 	"time"
 )
 
+type MonthlyWorkTime struct {
+	Year, Month int
+	Records []WorkTimeRecord
+}
+
 type WorkTimeRecord struct {
-	Date    Date
+	Date    *Date
 	Periods []Period
-}
-
-type Date struct {
-	Year, Month, Day int
-}
-
-func (this *Date) IsLastDayOfMonth() bool {
-	d := time.Date(this.Year, time.Month(this.Month), this.Day, 0, 0, 0, 0, time.UTC)
-	return d.Month() != d.AddDate(0, 0, 1).Month()
 }
 
 type Period struct {
@@ -107,7 +103,7 @@ func parsePeriod(date *Date, start, end string) (*Period, error) {
 	}
 }
 
-func ParseWorkTimeRecords(year, month int, rows [][]interface{}) ([]WorkTimeRecord, error) {
+func parseMonthlyWorkTime(year, month int, rows [][]interface{}) (*MonthlyWorkTime, error) {
 	var records []WorkTimeRecord
 	for _, row := range rows {
 		var record []string
@@ -137,11 +133,11 @@ func ParseWorkTimeRecords(year, month int, rows [][]interface{}) ([]WorkTimeReco
 			periods = append(periods, *p)
 		}
 
-		records = append(records, WorkTimeRecord{Date: *date, Periods: periods})
+		records = append(records, WorkTimeRecord{Date: date, Periods: periods})
 
 		if date.IsLastDayOfMonth() {
 			break
 		}
 	}
-	return records, nil
+	return &MonthlyWorkTime{Year: year, Month: month, Records: records}, nil
 }

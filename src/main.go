@@ -11,19 +11,23 @@ import (
 	"work-time-logging/worktime"
 )
 
-type ShowCmdArgs struct {
-	SheetName string
+type showCmdArgs struct {
+	projectName string
 }
 
-func doShow(args *ShowCmdArgs, config *configuration.Config) {
+type startCmdArgs struct {
+	projectName string
+}
+
+func doShow(args *showCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
-	records, err := w.Get(args.SheetName, 2021, 1)
+	monthlyWorkTime, err := w.Get(args.projectName, 2021, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, record := range records {
+	for _, record := range monthlyWorkTime.Records {
 		formatPeriod := func(p worktime.Period) string {
 			if p.IsEmpty() {
 				return ""
@@ -49,16 +53,22 @@ func doShow(args *ShowCmdArgs, config *configuration.Config) {
 	}
 }
 
-func doStart(config *configuration.Config) {
+func doStart(args *startCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
-	w.SetStart()
+	err := w.SetStart(args.projectName,
+		&worktime.Date{2021, 1, 20},
+		&worktime.Time{20, 30})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
 	config := configuration.Load(".")
 
 	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
+	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: %s COMMAND [ARGS]", os.Args[0])
@@ -66,12 +76,17 @@ func main() {
 
 	switch os.Args[1] {
 	case "show":
-		var args ShowCmdArgs
 		showCmd.Parse(os.Args[2:])
-		args.SheetName = showCmd.Arg(0)
+		args := showCmdArgs{
+			projectName: showCmd.Arg(0),
+		}
 		doShow(&args, config)
 	case "start":
-		doStart(config)
+		startCmd.Parse(os.Args[2:])
+		args := startCmdArgs{
+			projectName: startCmd.Arg(0),
+		}
+		doStart(&args, config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])
 	}

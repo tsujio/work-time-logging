@@ -46,15 +46,15 @@ func (this *Spreadsheet) Get(spreadsheetName, sheetName, leftUpper, rightBottom 
 	return resp.Values
 }
 
-func (this *Spreadsheet) Update() {
+func (this *Spreadsheet) Update(spreadsheetName, sheetName, address string, value interface{}) {
 	srv, err := sheets.New(this.api)
 	if err != nil {
 		log.Fatalf("Unable to retrieve Sheets client: %v", err)
 	}
 
-	spreadsheetId := this.findSpreadsheetId("wakucone")
-	readRange := fmt.Sprintf("%s!%s", "202101", "C32")
-	vr := sheets.ValueRange{Values: [][]interface{}{[]interface{}{"11:11"}}}
+	spreadsheetId := this.findSpreadsheetId(spreadsheetName)
+	readRange := fmt.Sprintf("%s!%s", sheetName, address)
+	vr := sheets.ValueRange{Values: [][]interface{}{[]interface{}{value}}}
 	_, err = srv.Spreadsheets.Values.Update(spreadsheetId, readRange, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve data from sheet: %v", err)
