@@ -20,3 +20,14 @@ func (this *Date) IsLastDayOfMonth() bool {
 type Time struct {
 	Hour, Minute int
 }
+
+func (this *Time) RoundTime() *Time {
+	diff := 10 - this.Minute % 10
+	m := this.Minute + diff
+	h := this.Hour
+	if m >= 60 {
+		h++
+		m = 0
+	}
+	return &Time{Hour: h, Minute: m}
+}

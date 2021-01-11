@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"work-time-logging/configuration"
 	"work-time-logging/spreadsheet"
@@ -26,7 +27,10 @@ type endCmdArgs struct {
 func doShow(args *showCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
-	monthlyWorkTime, err := w.Get(args.projectName, 2021, 1)
+
+	now := time.Now()
+
+	monthlyWorkTime, err := w.Get(args.projectName, now.Year(), int(now.Month()))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,9 +64,15 @@ func doShow(args *showCmdArgs, config *configuration.Config) {
 func doStart(args *startCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
+
+	now := time.Now()
+
+	t := &worktime.Time{now.Hour(), now.Minute()}
+	t = t.RoundTime()
+
 	err := w.SetStart(args.projectName,
-		&worktime.Date{2021, 1, 20},
-		&worktime.Time{20, 30})
+		&worktime.Date{now.Year(), int(now.Month()), now.Day()},
+		t)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,9 +81,15 @@ func doStart(args *startCmdArgs, config *configuration.Config) {
 func doEnd(args *endCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s)
+
+	now := time.Now()
+
+	t := &worktime.Time{now.Hour(), now.Minute()}
+	t = t.RoundTime()
+
 	err := w.SetEnd(args.projectName,
-		&worktime.Date{2021, 1, 20},
-		&worktime.Time{20, 30})
+		&worktime.Date{now.Year(), int(now.Month()), now.Day()},
+		t)
 	if err != nil {
 		log.Fatal(err)
 	}
