@@ -18,10 +18,12 @@ type showCmdArgs struct {
 
 type startCmdArgs struct {
 	projectName string
+	time string
 }
 
 type endCmdArgs struct {
 	projectName string
+	time string
 }
 
 func doShow(args *showCmdArgs, config *configuration.Config) {
@@ -67,10 +69,19 @@ func doStart(args *startCmdArgs, config *configuration.Config) {
 
 	now := time.Now()
 
-	t := &worktime.Time{now.Hour(), now.Minute()}
+	var t *worktime.Time
+	var err error
+	if args.time != "" {
+		t, err = worktime.ParseHHMM(args.time)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		t = &worktime.Time{now.Hour(), now.Minute()}
+	}
 	t = t.RoundTime()
 
-	err := w.SetStart(args.projectName,
+	err = w.SetStart(args.projectName,
 		&worktime.Date{now.Year(), int(now.Month()), now.Day()},
 		t)
 	if err != nil {
@@ -84,10 +95,19 @@ func doEnd(args *endCmdArgs, config *configuration.Config) {
 
 	now := time.Now()
 
-	t := &worktime.Time{now.Hour(), now.Minute()}
+	var t *worktime.Time
+	var err error
+	if args.time != "" {
+		t, err = worktime.ParseHHMM(args.time)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		t = &worktime.Time{now.Hour(), now.Minute()}
+	}
 	t = t.RoundTime()
 
-	err := w.SetEnd(args.projectName,
+	err = w.SetEnd(args.projectName,
 		&worktime.Date{now.Year(), int(now.Month()), now.Day()},
 		t)
 	if err != nil {
@@ -114,16 +134,16 @@ func main() {
 		}
 		doShow(&args, config)
 	case "start":
+		var args startCmdArgs
+		startCmd.StringVar(&args.time, "time", "", "HH:MM")
 		startCmd.Parse(os.Args[2:])
-		args := startCmdArgs{
-			projectName: startCmd.Arg(0),
-		}
+		args.projectName = startCmd.Arg(0)
 		doStart(&args, config)
 	case "end":
+		var args endCmdArgs
+		endCmd.StringVar(&args.time, "time", "", "HH:MM")
 		endCmd.Parse(os.Args[2:])
-		args := endCmdArgs{
-			projectName: endCmd.Arg(0),
-		}
+		args.projectName = endCmd.Arg(0)
 		doEnd(&args, config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])

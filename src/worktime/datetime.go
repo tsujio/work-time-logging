@@ -2,6 +2,9 @@ package worktime
 
 import (
 	"time"
+	"strings"
+	"fmt"
+	"strconv"
 )
 
 type Date struct {
@@ -21,8 +24,24 @@ type Time struct {
 	Hour, Minute int
 }
 
+func ParseHHMM(hhmm string) (*Time, error) {
+	slice := strings.Split(hhmm, ":")
+	if len(slice) != 2 {
+		return nil, fmt.Errorf("Invalid time: %s", hhmm)
+	}
+	h, err := strconv.Atoi(slice[0])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid hour: %s", slice[0])
+	}
+	m, err := strconv.Atoi(slice[1])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid minute: %s", slice[1])
+	}
+	return &Time{h, m}, nil
+}
+
 func (this *Time) RoundTime() *Time {
-	diff := 10 - this.Minute % 10
+	diff := (10 - this.Minute % 10) % 10
 	m := this.Minute + diff
 	h := this.Hour
 	if m >= 60 {
