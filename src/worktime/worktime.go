@@ -21,7 +21,7 @@ func (this *WorkTime) getSheetName(year, month int) string {
 func (this *WorkTime) getPeriodCellAddress(recordIndex, periodIndex int, startOrEnd string) (string, error) {
 	row := 4 + recordIndex
 
-	col := int('C') + 2 * periodIndex
+	col := int('C') + 2*periodIndex
 	if startOrEnd == "end" {
 		col++
 	}

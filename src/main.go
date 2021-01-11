@@ -18,12 +18,12 @@ type showCmdArgs struct {
 
 type startCmdArgs struct {
 	projectName string
-	time string
+	time        string
 }
 
 type endCmdArgs struct {
 	projectName string
-	time string
+	time        string
 }
 
 func doShow(args *showCmdArgs, config *configuration.Config) {

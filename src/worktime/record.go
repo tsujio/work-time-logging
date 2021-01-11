@@ -10,7 +10,7 @@ import (
 
 type MonthlyWorkTime struct {
 	Year, Month int
-	Records []WorkTimeRecord
+	Records     []WorkTimeRecord
 }
 
 type WorkTimeRecord struct {

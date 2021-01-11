@@ -1,10 +1,10 @@
 package worktime
 
 import (
-	"time"
-	"strings"
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type Date struct {
@@ -41,7 +41,7 @@ func ParseHHMM(hhmm string) (*Time, error) {
 }
 
 func (this *Time) RoundTime() *Time {
-	diff := (10 - this.Minute % 10) % 10
+	diff := (10 - this.Minute%10) % 10
 	m := this.Minute + diff
 	h := this.Hour
 	if m >= 60 {
