@@ -16,6 +16,7 @@ type MonthlyWorkTime struct {
 type WorkTimeRecord struct {
 	Date    *Date
 	Periods []Period
+	TravelExpense *TravelExpense
 }
 
 type Period struct {
@@ -29,6 +30,19 @@ func (this *Period) IsEmpty() bool {
 
 func (this *Period) IsEndEmpty() bool {
 	return this.End.Equal(time.Time{})
+}
+
+type TravelExpense struct {
+	Expense int
+	Note string
+}
+
+func parseTravelExpense(expense, note string) (*TravelExpense, error) {
+	e, err := strconv.Atoi(strings.TrimSpace(expense))
+	if err != nil {
+		return nil, err
+	}
+	return &TravelExpense{Expense: e, Note: note}, nil
 }
 
 func parseDate(year, month int, value string) (*Date, error) {
@@ -115,7 +129,7 @@ func parseMonthlyWorkTime(year, month int, rows [][]interface{}) (*MonthlyWorkTi
 			}
 		}
 
-		if len(record) < 8 {
+		if len(record) < 9 {
 			return nil, fmt.Errorf("Invalid record: %v", record)
 		}
 
@@ -133,7 +147,21 @@ func parseMonthlyWorkTime(year, month int, rows [][]interface{}) (*MonthlyWorkTi
 			periods = append(periods, *p)
 		}
 
-		records = append(records, WorkTimeRecord{Date: date, Periods: periods})
+		var travelExpense *TravelExpense
+		if len(record) > 10 {
+			travelExpense, err = parseTravelExpense(record[10], record[9])
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			travelExpense = nil
+		}
+
+		records = append(records, WorkTimeRecord{
+			Date: date,
+			Periods: periods,
+			TravelExpense: travelExpense,
+		})
 
 		if date.IsLastDayOfMonth() {
 			break

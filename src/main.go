@@ -61,12 +61,20 @@ func doShow(args *showCmdArgs, config *configuration.Config) {
 			return startStr + "-" + endStr
 		}
 
-		fmt.Printf("%2d/%2d  %11s  %11s  %11s\n",
+		formatTravelExpense := func(t *worktime.TravelExpense) string {
+			if t == nil {
+				return ""
+			}
+			return fmt.Sprintf("%s  %d 円", t.Note, t.Expense)
+		}
+
+		fmt.Printf("%2d/%2d  %11s  %11s  %11s | %s\n",
 			record.Date.Month,
 			record.Date.Day,
 			formatPeriod(record.Periods[0]),
 			formatPeriod(record.Periods[1]),
-			formatPeriod(record.Periods[2]))
+			formatPeriod(record.Periods[2]),
+			formatTravelExpense(record.TravelExpense))
 	}
 }
 
