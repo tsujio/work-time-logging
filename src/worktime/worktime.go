@@ -6,14 +6,25 @@ import (
 	"golang.org/x/xerrors"
 
 	"work-time-logging/spreadsheet"
+	"work-time-logging/configuration"
 )
 
 type WorkTime struct {
 	sheet *spreadsheet.Spreadsheet
+	config *configuration.Config
 }
 
-func New(sheet *spreadsheet.Spreadsheet) *WorkTime {
-	return &WorkTime{sheet: sheet}
+func New(sheet *spreadsheet.Spreadsheet, config *configuration.Config) *WorkTime {
+	return &WorkTime{sheet: sheet, config: config}
+}
+
+func (this *WorkTime) findSpreadsheetId(name string) (string, error) {
+	for _, sheet := range this.config.Spreadsheets {
+		if sheet.Name == name {
+			return sheet.Id, nil
+		}
+	}
+	return "", xerrors.Errorf("Spreadsheet not found: %s", name)
 }
 
 func (this *WorkTime) getSheetName(year, month int) string {
@@ -36,7 +47,11 @@ func (this *WorkTime) getTravelExpenseCellAddress(recordIndex int) ([]string, er
 }
 
 func (this *WorkTime) Get(projectName string, year, month int) (*MonthlyWorkTime, error) {
-	rows, err := this.sheet.Get(projectName, this.getSheetName(year, month), "A4", "K40")
+	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	if err != nil {
+		return nil, xerrors.Errorf("Unable to find spreadsheet id: %w", err)
+	}
+	rows, err := this.sheet.Get(spreadsheetId, this.getSheetName(year, month), "A4", "K40")
 	if err != nil {
 		return nil, xerrors.Errorf("Unable to get sheet data: %w", err)
 	}
@@ -85,7 +100,12 @@ func (this *WorkTime) SetStart(projectName string, date *Date, time *Time) error
 		return err
 	}
 
-	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month), addr,
+	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	if err != nil {
+		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
+	}
+
+	this.sheet.Update(spreadsheetId, this.getSheetName(date.Year, date.Month), addr,
 		fmt.Sprintf("%2d:%02d", time.Hour, time.Minute))
 
 	return nil
@@ -129,7 +149,12 @@ func (this *WorkTime) SetEnd(projectName string, date *Date, time *Time) error {
 		return err
 	}
 
-	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month), addr,
+	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	if err != nil {
+		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
+	}
+
+	this.sheet.Update(spreadsheetId, this.getSheetName(date.Year, date.Month), addr,
 		fmt.Sprintf("%2d:%02d", time.Hour, time.Minute))
 
 	return nil
@@ -157,10 +182,15 @@ func (this *WorkTime) SetTravelExpense(projectName string, date *Date, expense i
 		return err
 	}
 
-	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month),
+	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	if err != nil {
+		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
+	}
+
+	this.sheet.Update(spreadsheetId, this.getSheetName(date.Year, date.Month),
 		addrList[0],
 		note)
-	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month),
+	this.sheet.Update(spreadsheetId, this.getSheetName(date.Year, date.Month),
 		addrList[1],
 		expense)
 

@@ -35,7 +35,7 @@ type travelCmdArgs struct {
 
 func doShow(args *showCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
-	w := worktime.New(s)
+	w := worktime.New(s, config)
 
 	now := time.Now()
 
@@ -80,7 +80,7 @@ func doShow(args *showCmdArgs, config *configuration.Config) {
 
 func doStart(args *startCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
-	w := worktime.New(s)
+	w := worktime.New(s, config)
 
 	now := time.Now()
 
@@ -106,7 +106,7 @@ func doStart(args *startCmdArgs, config *configuration.Config) {
 
 func doEnd(args *endCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
-	w := worktime.New(s)
+	w := worktime.New(s, config)
 
 	now := time.Now()
 
@@ -132,7 +132,7 @@ func doEnd(args *endCmdArgs, config *configuration.Config) {
 
 func doTravel(args *travelCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
-	w := worktime.New(s)
+	w := worktime.New(s, config)
 
 	now := time.Now()
 
