@@ -28,6 +28,11 @@ func (this *WorkTime) getPeriodCellAddress(recordIndex, periodIndex int, startOr
 	return fmt.Sprintf("%c%d", rune(col), row), nil
 }
 
+func (this *WorkTime) getTravelExpenseCellAddress(recordIndex int) ([]string, error) {
+	row := 4 + recordIndex
+	return []string{fmt.Sprintf("J%d", row), fmt.Sprintf("K%d", row)}, nil
+}
+
 func (this *WorkTime) Get(projectName string, year, month int) (*MonthlyWorkTime, error) {
 	rows := this.sheet.Get(projectName, this.getSheetName(year, month), "A4", "K40")
 	monthlyWorkTime, err := parseMonthlyWorkTime(year, month, rows)
@@ -121,6 +126,38 @@ func (this *WorkTime) SetEnd(projectName string, date *Date, time *Time) error {
 
 	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month), addr,
 		fmt.Sprintf("%2d:%02d", time.Hour, time.Minute))
+
+	return nil
+}
+
+func (this *WorkTime) SetTravelExpense(projectName string, date *Date, expense int, note string) error {
+	monthlyWorkTime, err := this.Get(projectName, date.Year, date.Month)
+	if err != nil {
+		return err
+	}
+
+	recordIndex := -1
+	for i, rcd := range monthlyWorkTime.Records {
+		if date.Equal(rcd.Date) {
+			recordIndex = i
+			break
+		}
+	}
+	if recordIndex == -1 {
+		return fmt.Errorf("specified date not found")
+	}
+
+	addrList, err := this.getTravelExpenseCellAddress(recordIndex)
+	if err != nil {
+		return err
+	}
+
+	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month),
+		addrList[0],
+		note)
+	this.sheet.Update(projectName, this.getSheetName(date.Year, date.Month),
+		addrList[1],
+		expense)
 
 	return nil
 }

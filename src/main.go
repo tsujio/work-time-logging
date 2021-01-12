@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"strconv"
 
 	"work-time-logging/configuration"
 	"work-time-logging/spreadsheet"
@@ -24,6 +25,12 @@ type startCmdArgs struct {
 type endCmdArgs struct {
 	projectName string
 	time        string
+}
+
+type travelCmdArgs struct {
+	projectName string
+	expense int
+	note string
 }
 
 func doShow(args *showCmdArgs, config *configuration.Config) {
@@ -115,12 +122,28 @@ func doEnd(args *endCmdArgs, config *configuration.Config) {
 	}
 }
 
+func doTravel(args *travelCmdArgs, config *configuration.Config) {
+	s := spreadsheet.New(config)
+	w := worktime.New(s)
+
+	now := time.Now()
+
+	err := w.SetTravelExpense(args.projectName,
+		&worktime.Date{now.Year(), int(now.Month()), now.Day()},
+		args.expense,
+		args.note)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	config := configuration.Load(".")
 
 	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	endCmd := flag.NewFlagSet("end", flag.ExitOnError)
+	travelCmd := flag.NewFlagSet("travel", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: %s COMMAND [ARGS]", os.Args[0])
@@ -145,6 +168,17 @@ func main() {
 		endCmd.Parse(os.Args[2:])
 		args.projectName = endCmd.Arg(0)
 		doEnd(&args, config)
+	case "travel":
+		var args travelCmdArgs
+		travelCmd.Parse(os.Args[2:])
+		args.projectName = travelCmd.Arg(0)
+		expense, err := strconv.Atoi(travelCmd.Arg(1))
+		if err != nil {
+			log.Fatal(err)
+		}
+		args.expense = expense
+		args.note = travelCmd.Arg(2)
+		doTravel(&args, config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])
 	}
