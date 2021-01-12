@@ -3,6 +3,8 @@ package worktime
 import (
 	"fmt"
 
+	"golang.org/x/xerrors"
+
 	"work-time-logging/spreadsheet"
 )
 
@@ -34,10 +36,13 @@ func (this *WorkTime) getTravelExpenseCellAddress(recordIndex int) ([]string, er
 }
 
 func (this *WorkTime) Get(projectName string, year, month int) (*MonthlyWorkTime, error) {
-	rows := this.sheet.Get(projectName, this.getSheetName(year, month), "A4", "K40")
+	rows, err := this.sheet.Get(projectName, this.getSheetName(year, month), "A4", "K40")
+	if err != nil {
+		return nil, xerrors.Errorf("Unable to get sheet data: %w", err)
+	}
 	monthlyWorkTime, err := parseMonthlyWorkTime(year, month, rows)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("Unable to parse work time data: %w", err)
 	}
 	return monthlyWorkTime, nil
 }
