@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	"path/filepath"
 
 	"work-time-logging/configuration"
 	"work-time-logging/spreadsheet"
@@ -146,7 +147,12 @@ func doTravel(args *travelCmdArgs, config *configuration.Config) {
 }
 
 func main() {
-	config := configuration.Load(".")
+	executable, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	configDir := filepath.Join(filepath.Dir(executable), ".work-time-logging")
+	config := configuration.Load(configDir)
 
 	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
