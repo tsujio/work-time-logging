@@ -20,6 +20,10 @@ func New(config *configuration.Config) *Spreadsheet {
 	return &Spreadsheet{api: api, config: config}
 }
 
+func (this *Spreadsheet) GetSpreadsheetLink(spreadsheetId string) string {
+	return fmt.Sprintf("https://docs.google.com/spreadsheets/d/%s", spreadsheetId)
+}
+
 func (this *Spreadsheet) Get(spreadsheetId, sheetName, leftUpper, rightBottom string) ([][]interface{}, error) {
 	srv, err := sheets.New(this.api)
 	if err != nil {

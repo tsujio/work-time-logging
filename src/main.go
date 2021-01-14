@@ -34,6 +34,10 @@ type travelCmdArgs struct {
 	note string
 }
 
+type linkCmdArgs struct {
+	projectName string
+}
+
 func doShow(args *showCmdArgs, config *configuration.Config) {
 	s := spreadsheet.New(config)
 	w := worktime.New(s, config)
@@ -146,6 +150,18 @@ func doTravel(args *travelCmdArgs, config *configuration.Config) {
 	}
 }
 
+func doLink(args *linkCmdArgs, config *configuration.Config) {
+	spreadsheetId, err := config.FindSpreadsheetId(args.projectName)
+	if err != nil {
+		log.Fatalf("%+w", err)
+	}
+
+	s := spreadsheet.New(config)
+	link := s.GetSpreadsheetLink(spreadsheetId)
+
+	fmt.Println(link)
+}
+
 func main() {
 	executable, err := os.Executable()
 	if err != nil {
@@ -158,6 +174,7 @@ func main() {
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	endCmd := flag.NewFlagSet("end", flag.ExitOnError)
 	travelCmd := flag.NewFlagSet("travel", flag.ExitOnError)
+	linkCmd := flag.NewFlagSet("link", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: %s COMMAND [ARGS]", os.Args[0])
@@ -193,6 +210,11 @@ func main() {
 		args.expense = expense
 		args.note = travelCmd.Arg(2)
 		doTravel(&args, config)
+	case "link":
+		var args linkCmdArgs
+		linkCmd.Parse(os.Args[2:])
+		args.projectName = linkCmd.Arg(0)
+		doLink(&args, config)
 	default:
 		log.Fatalf("Invalid command: %s", os.Args[1])
 	}

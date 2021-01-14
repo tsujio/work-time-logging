@@ -18,15 +18,6 @@ func New(sheet *spreadsheet.Spreadsheet, config *configuration.Config) *WorkTime
 	return &WorkTime{sheet: sheet, config: config}
 }
 
-func (this *WorkTime) findSpreadsheetId(name string) (string, error) {
-	for _, sheet := range this.config.Spreadsheets {
-		if sheet.Name == name {
-			return sheet.Id, nil
-		}
-	}
-	return "", xerrors.Errorf("Spreadsheet not found: %s", name)
-}
-
 func (this *WorkTime) getSheetName(year, month int) string {
 	return fmt.Sprintf("%04d%02d", year, month)
 }
@@ -47,7 +38,7 @@ func (this *WorkTime) getTravelExpenseCellAddress(recordIndex int) ([]string, er
 }
 
 func (this *WorkTime) Get(projectName string, year, month int) (*MonthlyWorkTime, error) {
-	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	spreadsheetId, err := this.config.FindSpreadsheetId(projectName)
 	if err != nil {
 		return nil, xerrors.Errorf("Unable to find spreadsheet id: %w", err)
 	}
@@ -100,7 +91,7 @@ func (this *WorkTime) SetStart(projectName string, date *Date, time *Time) error
 		return err
 	}
 
-	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	spreadsheetId, err := this.config.FindSpreadsheetId(projectName)
 	if err != nil {
 		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
 	}
@@ -149,7 +140,7 @@ func (this *WorkTime) SetEnd(projectName string, date *Date, time *Time) error {
 		return err
 	}
 
-	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	spreadsheetId, err := this.config.FindSpreadsheetId(projectName)
 	if err != nil {
 		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
 	}
@@ -182,7 +173,7 @@ func (this *WorkTime) SetTravelExpense(projectName string, date *Date, expense i
 		return err
 	}
 
-	spreadsheetId, err := this.findSpreadsheetId(projectName)
+	spreadsheetId, err := this.config.FindSpreadsheetId(projectName)
 	if err != nil {
 		return xerrors.Errorf("Unable to find spreadsheet id: %w", err)
 	}

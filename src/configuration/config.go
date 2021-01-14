@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/xerrors"
 )
 
 type ConfigFile struct {
@@ -35,4 +37,13 @@ func Load(settingsDir string) *Config {
 	config.Path = configPath
 	config.Dir = settingsDir
 	return &config
+}
+
+func (this *Config) FindSpreadsheetId(name string) (string, error) {
+	for _, sheet := range this.Spreadsheets {
+		if sheet.Name == name {
+			return sheet.Id, nil
+		}
+	}
+	return "", xerrors.Errorf("Spreadsheet not found: %s", name)
 }
