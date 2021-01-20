@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/xerrors"
 )
 
 type MonthlyWorkTime struct {
@@ -13,10 +15,26 @@ type MonthlyWorkTime struct {
 	Records     []WorkTimeRecord
 }
 
+func (this *MonthlyWorkTime) GetDuration() time.Duration {
+	var sum time.Duration
+	for _, r := range this.Records {
+		sum += r.GetDuration()
+	}
+	return sum
+}
+
 type WorkTimeRecord struct {
 	Date    *Date
 	Periods []Period
 	TravelExpense *TravelExpense
+}
+
+func (this *WorkTimeRecord) GetDuration() time.Duration {
+	var sum time.Duration
+	for _, p := range this.Periods {
+		sum += p.GetDuration()
+	}
+	return sum
 }
 
 type Period struct {
@@ -30,6 +48,14 @@ func (this *Period) IsEmpty() bool {
 
 func (this *Period) IsEndEmpty() bool {
 	return this.End.Equal(time.Time{})
+}
+
+func (this *Period) GetDuration() time.Duration {
+	if (this.IsEmpty() || this.IsEndEmpty()) {
+		return 0
+	} else {
+		return this.End.Sub(this.Start)
+	}
 }
 
 type TravelExpense struct {
@@ -117,53 +143,107 @@ func parsePeriod(date *Date, start, end string) (*Period, error) {
 	}
 }
 
+func parseDuration(d string) (time.Duration, error) {
+	slice := strings.Split(d, ":")
+	if len(slice) != 2 {
+		return 0, xerrors.Errorf("Invalid duration: %s", d)
+	}
+	h, err := strconv.Atoi(slice[0])
+	if err != nil {
+		return 0, xerrors.Errorf("Invalid hours: %s", slice[0])
+	}
+	m, err := strconv.Atoi(slice[1])
+	if err != nil {
+		return 0, xerrors.Errorf("Invalid minutes: %s", slice[1])
+	}
+	return time.Duration(h) * time.Hour + time.Duration(m) * time.Minute, nil
+}
+
+func parseWorkTimeRecord(year, month int, row []string) (*WorkTimeRecord, error) {
+	if len(row) < 9 {
+		return nil, xerrors.Errorf("Invalid row: %v", row)
+	}
+
+	date, err := parseDate(year, month, string(row[0]))
+	if err != nil {
+		return nil, xerrors.Errorf("Unable to parse date: %w", err)
+	}
+
+	var periods []Period
+	for _, i := range []int{2, 4, 6} {
+		p, err := parsePeriod(date, string(row[i]), string(row[i+1]))
+		if err != nil {
+			return nil, xerrors.Errorf("Unable to parse period: %w", err)
+		}
+		periods = append(periods, *p)
+	}
+
+	var travelExpense *TravelExpense
+	if len(row) > 10 {
+		travelExpense, err = parseTravelExpense(row[10], row[9])
+		if err != nil {
+			return nil, xerrors.Errorf("Unable to parse travel expense: %w", err)
+		}
+	} else {
+		travelExpense = nil
+	}
+
+	record := &WorkTimeRecord{
+		Date: date,
+		Periods: periods,
+		TravelExpense: travelExpense,
+	}
+
+	// Validate duration
+	sumActual := record.GetDuration()
+	sumGiven, err := parseDuration(row[8])
+	if err != nil {
+		return nil, xerrors.Errorf("Unable to parse duration: %w", err)
+	}
+	if sumActual != sumGiven {
+		return nil, xerrors.Errorf("Duration mismatch: date=%v, given=%v, actual=%v", date, sumGiven, sumActual)
+	}
+
+	return record, nil
+}
+
 func parseMonthlyWorkTime(year, month int, rows [][]interface{}) (*MonthlyWorkTime, error) {
 	var records []WorkTimeRecord
-	for _, row := range rows {
-		var record []string
-		for _, v := range row {
+	for i, rawRow := range rows {
+		var row []string
+		for _, v := range rawRow {
 			if s, ok := v.(string); ok {
-				record = append(record, s)
+				row = append(row, s)
 			} else {
-				return nil, fmt.Errorf("")
+				return nil, xerrors.Errorf("Invalid row: %v", rawRow)
 			}
 		}
 
-		if len(record) < 9 {
-			return nil, fmt.Errorf("Invalid record: %v", record)
-		}
-
-		date, err := parseDate(year, month, string(record[0]))
+		record, err := parseWorkTimeRecord(year, month, row)
 		if err != nil {
-			return nil, err
+			return nil, xerrors.Errorf("Unable to parse work time record: %w", err)
 		}
 
-		var periods []Period
-		for _, i := range []int{2, 4, 6} {
-			p, err := parsePeriod(date, string(record[i]), string(record[i+1]))
-			if err != nil {
-				return nil, err
+		records = append(records, *record)
+
+		if record.Date.IsLastDayOfMonth() {
+			// Validate duration
+			var sumActual time.Duration
+			for _, r := range records {
+				sumActual += r.GetDuration()
 			}
-			periods = append(periods, *p)
-		}
-
-		var travelExpense *TravelExpense
-		if len(record) > 10 {
-			travelExpense, err = parseTravelExpense(record[10], record[9])
-			if err != nil {
-				return nil, err
+			s, ok := rows[i+1][8].(string)
+			if !ok {
+				return nil, xerrors.Errorf("Invalid row: %v", rows[i+1])
 			}
-		} else {
-			travelExpense = nil
-		}
+			sumGiven, err := parseDuration(s)
+			if err != nil {
+				return nil, xerrors.Errorf("Unable to parse total duration: %w", err)
+			}
+			if sumActual != sumGiven {
+				return nil, xerrors.Errorf("Total duration mismatch: given=%v, actual=%v", sumActual, sumGiven)
+			}
 
-		records = append(records, WorkTimeRecord{
-			Date: date,
-			Periods: periods,
-			TravelExpense: travelExpense,
-		})
-
-		if date.IsLastDayOfMonth() {
 			break
 		}
 	}
