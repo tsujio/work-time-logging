@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/api/sheets/v4"
 	"golang.org/x/xerrors"
+	"google.golang.org/api/sheets/v4"
 
 	"work-time-logging/configuration"
 )

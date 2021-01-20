@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
-	"strconv"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"work-time-logging/configuration"
 	"work-time-logging/spreadsheet"
@@ -30,8 +30,8 @@ type endCmdArgs struct {
 
 type travelCmdArgs struct {
 	projectName string
-	expense int
-	note string
+	expense     int
+	note        string
 }
 
 type linkCmdArgs struct {

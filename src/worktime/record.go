@@ -24,8 +24,8 @@ func (this *MonthlyWorkTime) GetDuration() time.Duration {
 }
 
 type WorkTimeRecord struct {
-	Date    *Date
-	Periods []Period
+	Date          *Date
+	Periods       []Period
 	TravelExpense *TravelExpense
 }
 
@@ -51,7 +51,7 @@ func (this *Period) IsEndEmpty() bool {
 }
 
 func (this *Period) GetDuration() time.Duration {
-	if (this.IsEmpty() || this.IsEndEmpty()) {
+	if this.IsEmpty() || this.IsEndEmpty() {
 		return 0
 	} else {
 		return this.End.Sub(this.Start)
@@ -60,7 +60,7 @@ func (this *Period) GetDuration() time.Duration {
 
 type TravelExpense struct {
 	Expense int
-	Note string
+	Note    string
 }
 
 func parseTravelExpense(expense, note string) (*TravelExpense, error) {
@@ -156,7 +156,7 @@ func parseDuration(d string) (time.Duration, error) {
 	if err != nil {
 		return 0, xerrors.Errorf("Invalid minutes: %s", slice[1])
 	}
-	return time.Duration(h) * time.Hour + time.Duration(m) * time.Minute, nil
+	return time.Duration(h)*time.Hour + time.Duration(m)*time.Minute, nil
 }
 
 func parseWorkTimeRecord(year, month int, row []string) (*WorkTimeRecord, error) {
@@ -189,8 +189,8 @@ func parseWorkTimeRecord(year, month int, row []string) (*WorkTimeRecord, error)
 	}
 
 	record := &WorkTimeRecord{
-		Date: date,
-		Periods: periods,
+		Date:          date,
+		Periods:       periods,
 		TravelExpense: travelExpense,
 	}
 

@@ -5,12 +5,12 @@ import (
 
 	"golang.org/x/xerrors"
 
-	"work-time-logging/spreadsheet"
 	"work-time-logging/configuration"
+	"work-time-logging/spreadsheet"
 )
 
 type WorkTime struct {
-	sheet *spreadsheet.Spreadsheet
+	sheet  *spreadsheet.Spreadsheet
 	config *configuration.Config
 }
 
