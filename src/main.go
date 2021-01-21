@@ -49,6 +49,11 @@ func doShow(args *showCmdArgs, config *configuration.Config) {
 		log.Fatalf("%+v", err)
 	}
 
+	formatWeekday := func(d *worktime.Date) string {
+		w := d.GetWeekday()
+		return []string{"日", "月", "火", "水", "木", "金", "土"}[w]
+	}
+
 	formatPeriod := func(p worktime.Period) string {
 		if p.IsEmpty() {
 			return ""
@@ -82,9 +87,10 @@ func doShow(args *showCmdArgs, config *configuration.Config) {
 	}
 
 	for _, record := range monthlyWorkTime.Records {
-		fmt.Printf("%2d/%2d  %11s  %11s  %11s    %5s | %s\n",
+		fmt.Printf("%2d/%2d (%s)  %11s  %11s  %11s    %5s | %s\n",
 			record.Date.Month,
 			record.Date.Day,
+			formatWeekday(record.Date),
 			formatPeriod(record.Periods[0]),
 			formatPeriod(record.Periods[1]),
 			formatPeriod(record.Periods[2]),

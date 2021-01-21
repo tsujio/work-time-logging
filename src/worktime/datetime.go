@@ -20,6 +20,11 @@ func (this *Date) IsLastDayOfMonth() bool {
 	return d.Month() != d.AddDate(0, 0, 1).Month()
 }
 
+func (this *Date) GetWeekday() time.Weekday {
+	d := time.Date(this.Year, time.Month(this.Month), this.Day, 0, 0, 0, 0, time.UTC)
+	return d.Weekday()
+}
+
 type Time struct {
 	Hour, Minute int
 }
